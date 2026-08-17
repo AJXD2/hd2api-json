@@ -48,18 +48,9 @@ func loadFactionJson() ([]Faction, error) {
 		return nil, err
 	}
 
-	var factions []Faction
-
-	for index, faction := range rawFactions {
-		id, err := strconv.Atoi(index)
-		if err != nil {
-			fmt.Println("Error casting to integer", err)
-			return nil, err
-
-		}
-		fmt.Println(id, faction)
-		factions = append(factions, Faction{Index: id, Name: faction})
-	}
+	factions, err := flattenNamed(rawFactions, func(id int, name string) Faction {
+		return Faction{Index: id, Name: name}
+	})
 
 	sort.Slice(factions, func(i, j int) bool {
 		return factions[i].Index < factions[j].Index
@@ -75,15 +66,9 @@ func loadWarbondJson() ([]Warbond, error) {
 		fmt.Println("Error getting json", err)
 	}
 
-	warbonds := make([]Warbond, 0, len(rawWarbonds))
-	for indexStr, wb := range rawWarbonds {
-		index, err := strconv.Atoi(indexStr)
-		if err != nil {
-			continue
-		}
-		wb.Index = index
-		warbonds = append(warbonds, wb)
-	}
+	warbonds, err := withIndex(rawWarbonds, func(item *Warbond, index int) {
+		item.Index = index
+	})
 
 	sort.Slice(warbonds, func(i, j int) bool {
 		return warbonds[i].Index < warbonds[j].Index
