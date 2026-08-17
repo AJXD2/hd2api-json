@@ -1,0 +1,3 @@
+[submodule "json-repo"]
+	path = json-repo
+	url = https://github.com/helldivers-2/json.git
