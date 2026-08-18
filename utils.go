@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -27,6 +28,15 @@ func withIndex[T any](rawMap map[string]T, setIndex func(item *T, index int)) ([
 	return result, nil
 }
 
+func withKey[T any](rawMap map[string]T, setKey func(item *T, key string)) ([]T, error) {
+	result := make([]T, 0, len(rawMap))
+	for key, obj := range rawMap {
+		setKey(&obj, key)
+		result = append(result, obj)
+	}
+	return result, nil
+}
+
 func flattenNamed[T any](rawMap map[string]string, build func(id int, value string) T) ([]T, error) {
 	result := make([]T, 0, len(rawMap))
 	for idStr, value := range rawMap {
@@ -37,4 +47,21 @@ func flattenNamed[T any](rawMap map[string]string, build func(id int, value stri
 		result = append(result, build(id, value))
 	}
 	return result, nil
+}
+
+func indexBy[T any](items []T, key func(T) string) map[string]T {
+	idx := make(map[string]T, len(items))
+	for _, item := range items {
+		idx[key(item)] = item
+	}
+	return idx
+}
+
+func mustMarshal(v any) []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		fmt.Println("fatal: marshal", err)
+		os.Exit(1)
+	}
+	return b
 }
