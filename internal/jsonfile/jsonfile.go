@@ -1,21 +1,36 @@
-package main
+package jsonfile
 
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 )
 
-func must[T any](val T, err error) T {
+func Read[T any](path string) (T, error) {
+	var zero T
+
+	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println("fatal:", err)
-		os.Exit(1)
+		return zero, err
 	}
-	return val
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
+	if err != nil {
+		return zero, err
+	}
+
+	var data T
+	if err := json.Unmarshal(b, &data); err != nil {
+		return zero, err
+	}
+
+	return data, nil
 }
 
-func withIndex[T any](rawMap map[string]T, setIndex func(item *T, index int)) ([]T, error) {
+func WithIndex[T any](rawMap map[string]T, setIndex func(item *T, index int)) ([]T, error) {
 	result := make([]T, 0, len(rawMap))
 	for indexStr, obj := range rawMap {
 		id, err := strconv.Atoi(indexStr)
@@ -28,7 +43,7 @@ func withIndex[T any](rawMap map[string]T, setIndex func(item *T, index int)) ([
 	return result, nil
 }
 
-func withKey[T any](rawMap map[string]T, setKey func(item *T, key string)) ([]T, error) {
+func WithKey[T any](rawMap map[string]T, setKey func(item *T, key string)) ([]T, error) {
 	result := make([]T, 0, len(rawMap))
 	for key, obj := range rawMap {
 		setKey(&obj, key)
@@ -37,7 +52,7 @@ func withKey[T any](rawMap map[string]T, setKey func(item *T, key string)) ([]T,
 	return result, nil
 }
 
-func flattenNamed[T any](rawMap map[string]string, build func(id int, value string) T) ([]T, error) {
+func FlattenNamed[T any](rawMap map[string]string, build func(id int, value string) T) ([]T, error) {
 	result := make([]T, 0, len(rawMap))
 	for idStr, value := range rawMap {
 		id, err := strconv.Atoi(idStr)
@@ -49,7 +64,7 @@ func flattenNamed[T any](rawMap map[string]string, build func(id int, value stri
 	return result, nil
 }
 
-func indexBy[T any](items []T, key func(T) string) map[string]T {
+func IndexBy[T any](items []T, key func(T) string) map[string]T {
 	idx := make(map[string]T, len(items))
 	for _, item := range items {
 		idx[key(item)] = item
@@ -57,11 +72,10 @@ func indexBy[T any](items []T, key func(T) string) map[string]T {
 	return idx
 }
 
-func mustMarshal(v any) []byte {
-	b, err := json.Marshal(v)
+func Must[T any](val T, err error) T {
 	if err != nil {
-		fmt.Println("fatal: marshal", err)
+		fmt.Println("fatal:", err)
 		os.Exit(1)
 	}
-	return b
+	return val
 }
