@@ -8,6 +8,7 @@ import (
 	"github.com/ajxd2/helldivers-json-api/internal/httpapi"
 	"github.com/ajxd2/helldivers-json-api/internal/jsonfile"
 	"github.com/ajxd2/helldivers-json-api/internal/planet"
+	"github.com/ajxd2/helldivers-json-api/internal/region"
 	"github.com/ajxd2/helldivers-json-api/internal/warbond"
 	"github.com/go-chi/chi/v5"
 )
@@ -19,6 +20,7 @@ func main() {
 		jsonfile.Must(httpapi.New("/api/faction", func() ([]faction.Faction, error) { return faction.Load(repoDir) })),
 		jsonfile.Must(httpapi.New("/api/warbonds", func() ([]warbond.Warbond, error) { return warbond.Load(repoDir) })),
 		jsonfile.Must(httpapi.New("/api/planets", func() ([]planet.Planet, error) { return planet.Load(repoDir) })),
+		jsonfile.Must(httpapi.New("/api/regions", func() ([]region.Region, error) { return region.Load(repoDir) })),
 	}
 
 	r := chi.NewRouter()
