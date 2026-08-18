@@ -33,4 +33,4 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
-helldivers-json-api
+./helldivers-json-api

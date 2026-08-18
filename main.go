@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -77,9 +76,32 @@ func loadWarbondJson() ([]Warbond, error) {
 	return warbonds, nil
 }
 
+func loadPlanetsJson() ([]Planet, error) {
+	rawPlanets, err := getFileJson[map[string]Planet]("json-repo/planets/planets.json")
+
+	if err != nil {
+		fmt.Println("Error getting json", err)
+	}
+
+	planets, err := withIndex(rawPlanets, func(item *Planet, index int) {
+		item.Index = index
+		fmt.Println(item.Enviromentals)
+		if len(item.Enviromentals) == 0 {
+			item.Enviromentals = append(item.Enviromentals, "none")
+		}
+	})
+
+	sort.Slice(planets, func(i, j int) bool {
+		return planets[i].Index < planets[j].Index
+	})
+
+	return planets, nil
+}
+
 func main() {
 	factions := must(loadFactionJson())
 	warbonds := must(loadWarbondJson())
+	planets := must(loadPlanetsJson())
 	r := chi.NewRouter()
 
 	r.Get("/api/faction", func(w http.ResponseWriter, r *http.Request) {
@@ -94,5 +116,10 @@ func main() {
 		json.NewEncoder(w).Encode(warbonds)
 	})
 
+	r.Get("/api/planets", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "public, max-age=300")
+		json.NewEncoder(w).Encode(planets)
+	})
 	http.ListenAndServe(":8080", r)
 }
