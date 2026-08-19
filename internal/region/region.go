@@ -17,7 +17,7 @@ type Region struct {
 func Load(repoDir string) ([]Region, error) {
 	raw, err := jsonfile.Read[map[string]Region](repoDir + "/planets/planetRegion.json")
 	if err != nil {
-		return nil, fmt.Errorf("loading warbonds: %w", err)
+		return nil, fmt.Errorf("loading regions: %w", err)
 	}
 
 	regions, err := jsonfile.WithIndex(raw, func(item *Region, index int) {
